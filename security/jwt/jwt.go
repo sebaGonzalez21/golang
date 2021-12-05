@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -23,9 +24,8 @@ func GenerateJwt(u models.User) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 	tokenStr, err := token.SignedString(miPass)
-
 	if err != nil {
 		return tokenStr, err
 	}
-	return tokenStr, nil
+	return strings.Join([]string{"Bearer ", tokenStr}, ""), nil
 }

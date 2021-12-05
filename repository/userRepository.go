@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	jsonLog "github.com/rs/zerolog/log"
 	"github.com/sagonzalezp/twitt/db"
 	"github.com/sagonzalezp/twitt/models"
 	"github.com/sagonzalezp/twitt/security"
@@ -48,6 +49,29 @@ func CheckExistUser(email string) (models.User, bool, string) {
 		return result, false, ID
 	}
 	return result, true, ID
+}
+
+func FindProfile(ID string) (models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	//instruccion como ultima instruccion de la funcion
+	defer cancel()
+	db := db.MongoC.Database("testGo")
+	col := db.Collection("users")
+
+	var profile models.User
+	objID, _ := primitive.ObjectIDFromHex(ID)
+
+	condition := bson.M{
+		"_id": objID,
+	}
+
+	err := col.FindOne(ctx, condition).Decode(&profile)
+	profile.Password = ""
+	if err != nil {
+		jsonLog.Error().Msg("Registro no encontrado " + err.Error())
+		return profile, err
+	}
+	return profile, nil
 }
 
 func Login(email string, password string) (models.User, bool) {
