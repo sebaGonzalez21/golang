@@ -27,8 +27,8 @@ func AddUser(u models.User) (string, bool, error) {
 		return "", false, err
 	}
 
-	ObjId, _ := result.InsertedID.(primitive.ObjectID)
-	return ObjId.String(), true, nil
+	ObjID := result.InsertedID.(primitive.ObjectID)
+	return ObjID.String(), true, nil
 }
 
 func CheckExistUser(email string) (models.User, bool, string) {

@@ -18,7 +18,9 @@ Handlers de servicios
 func Handlers() {
 	//captura el http
 	router := mux.NewRouter()
-	router.HandleFunc("/registro", middlew.CheckConnection(routers.Register)).Methods("POST")
+	router.HandleFunc("/login", middlew.CheckConnection(routers.Login)).Methods("POST")
+	router.HandleFunc("/register", middlew.CheckConnection(routers.Register)).Methods("POST")
+	router.HandleFunc("/perfil", middlew.CheckConnection(middlew.ValidateJwt(routers.Perfil))).Methods("GET")
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "8080"
