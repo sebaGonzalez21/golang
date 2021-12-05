@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,7 +22,7 @@ func Handlers() {
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "8080"
-		log.Default().Printf("INICIO EN PUERTO.. %s", PORT)
+		fmt.Println("INICIO EN PUERTO..." + PORT)
 	}
 
 	//route de gorrila mux
