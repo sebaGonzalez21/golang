@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	jsonLog "github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -27,7 +28,7 @@ func ConnectBd() *mongo.Client {
 		log.Fatal(err.Error())
 		return client
 	}
-	log.Println("Conexion exitosa con la bd")
+	jsonLog.Info().Msg("Conexion exitosa con la bd")
 	return client
 }
 

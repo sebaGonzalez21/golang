@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	jsonLog "github.com/rs/zerolog/log"
 	"github.com/sagonzalezp/twitt/middlew"
 	"github.com/sagonzalezp/twitt/routers"
 )
@@ -22,7 +22,7 @@ func Handlers() {
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "8080"
-		fmt.Println("INICIO EN PUERTO..." + PORT)
+		jsonLog.Info().Msg("INICIO EN PUERTO.. " + PORT)
 	}
 
 	//route de gorrila mux

@@ -12,6 +12,7 @@ func CheckConnection(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "conecion perdida con la bd", 500)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	}
 }

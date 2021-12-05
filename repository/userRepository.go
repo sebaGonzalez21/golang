@@ -9,6 +9,7 @@ import (
 	"github.com/sagonzalezp/twitt/security"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func AddUser(u models.User) (string, bool, error) {
@@ -47,4 +48,20 @@ func CheckExistUser(email string) (models.User, bool, string) {
 		return result, false, ID
 	}
 	return result, true, ID
+}
+
+func Login(email string, password string) (models.User, bool) {
+	user, exist, _ := CheckExistUser(email)
+	if !exist {
+		return user, false
+	}
+	passwordBytes := []byte(password)
+	passwordBd := []byte(user.Password)
+	err := bcrypt.CompareHashAndPassword(passwordBd, passwordBytes)
+
+	if err != nil {
+		return user, false
+	}
+	return user, true
+
 }
