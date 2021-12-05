@@ -19,8 +19,9 @@ func Handlers() {
 	router := mux.NewRouter()
 	router.HandleFunc("/registro", middlew.CheckConnection(routers.Register)).Methods("POST")
 	PORT := os.Getenv("PORT")
-	if PORT != "" {
+	if PORT == "" {
 		PORT = "8080"
+		log.Default().Printf("INICIO EN PUERTO.. %s", PORT)
 	}
 
 	//route de gorrila mux
