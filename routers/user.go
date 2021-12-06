@@ -107,16 +107,42 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func ProfileView(w http.ResponseWriter, r *http.Request) {
 	ID := r.URL.Query().Get("id")
 	if len(ID) < 1 {
+		jsonLog.Error().Msg("Debe enviar parametro id")
 		http.Error(w, "Debe enviar parametro id", http.StatusBadRequest)
 		return
 	}
 
 	profile, err := repository.FindProfile(ID)
 	if err != nil {
-		http.Error(w, "Ocurrio error al buscar el registro "+err.Error(), 400)
+		jsonLog.Error().Msg("Ocurrio error al buscar el registro " + err.Error())
+		http.Error(w, "Ocurrio error al buscar el registro", 400)
 		return
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(profile)
+}
+
+func ModifyProfile(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		jsonLog.Error().Msg("Datos Incorrectos " + err.Error())
+		http.Error(w, "Datos Incorrectos", 400)
+		return
+	}
+	status, err := repository.ModifyUser(user, IDUser)
+	if err != nil {
+		jsonLog.Error().Msg("Error al modificar el registro" + err.Error())
+		http.Error(w, "Error al modificar el registro", 400)
+		return
+	}
+
+	if !status {
+		jsonLog.Error().Msg("No se encontro el usuario " + err.Error())
+		http.Error(w, "No se encontro el usuario", 400)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

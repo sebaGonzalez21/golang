@@ -89,3 +89,57 @@ func Login(email string, password string) (models.User, bool) {
 	return user, true
 
 }
+
+func ModifyUser(u models.User, ID string) (bool, error) {
+	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	db := db.MongoC.Database("testGo")
+	col := db.Collection("users")
+
+	registre := make(map[string]interface{})
+
+	if len(u.Name) > 0 {
+		registre["name"] = u.Name
+	}
+
+	if len(u.Name) > 0 {
+		registre["lastName"] = u.LastName
+	}
+
+	registre["yearBirth"] = u.YearBirth
+
+	if len(u.Avatar) > 0 {
+		registre["avatar"] = u.Avatar
+	}
+
+	if len(u.Banner) > 0 {
+		registre["banner"] = u.Banner
+	}
+
+	if len(u.Biography) > 0 {
+		registre["biography"] = u.Biography
+	}
+
+	if len(u.WebSite) > 0 {
+		registre["webSite"] = u.WebSite
+	}
+
+	if len(u.Location) > 0 {
+		registre["location"] = u.Location
+	}
+
+	updateString := bson.M{
+		"$set": registre,
+	}
+
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	filter := bson.M{"_id": bson.M{"$eq": objID}}
+
+	_, err := col.UpdateOne(cxt, filter, updateString)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
