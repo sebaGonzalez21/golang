@@ -10,6 +10,7 @@ import (
 	"github.com/sagonzalezp/twitt/security"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,6 +31,75 @@ func AddUser(u models.User) (string, bool, error) {
 
 	ObjID := result.InsertedID.(primitive.ObjectID)
 	return ObjID.String(), true, nil
+}
+
+func GetAllUsers(ID string, page int64, search string, types string) ([]*models.User, bool) {
+	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	db := db.MongoC.Database("twitter")
+	col := db.Collection("users")
+
+	var result []*models.User
+
+	options := options.Find() //crear objetos con propiedades que intervienen
+	options.SetLimit(20)
+	options.SetSkip((page - 1) * 20)
+
+	filter := bson.M{
+		"name": bson.M{"$regex": `(?i)` + search},
+	}
+
+	//donde se guardan los valores de la bd
+	cursor, err := col.Find(cxt, filter, options)
+	if err != nil {
+		jsonLog.Error().Msg("Problemas de busqueda en usuarios " + err.Error())
+		return result, false
+	}
+
+	for cursor.Next(context.TODO()) {
+		var users models.User
+		err := cursor.Decode(&users)
+		if err != nil {
+			jsonLog.Error().Msg("Problemas al obtener lista de usuarios " + err.Error())
+			return result, false
+		}
+
+		var rel models.Relation
+		rel.UserID = ID
+		rel.UserRelationId = users.ID.Hex()
+
+		var finded, include bool
+		finded, err = GetRelation(rel)
+
+		if types == "new" && !finded {
+			include = true
+		}
+		if types == "follow" && finded {
+			include = true
+		}
+
+		if rel.UserRelationId == ID {
+			include = false
+		}
+
+		if include {
+			users.Password = ""
+			users.Biography = ""
+			users.WebSite = ""
+			users.Banner = ""
+			users.Email = ""
+			result = append(result, &users)
+		}
+
+	}
+
+	err = cursor.Err()
+	if err != nil {
+		jsonLog.Error().Msg("Error presentado al listar todos los usuarios ")
+		return result, false
+	}
+	return result, true
 }
 
 func CheckExistUser(email string) (models.User, bool, string) {

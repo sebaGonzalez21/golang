@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,6 +59,34 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func FindAllUsers(w http.ResponseWriter, r *http.Request) {
+	typeUser := r.URL.Query().Get("type")
+	page := r.URL.Query().Get("page")
+	search := r.URL.Query().Get("search")
+
+	pagTemp, err := strconv.Atoi(page)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error lista usuario no encontrado " + err.Error())
+		http.Error(w, "Error lista usuario no encontrado", 400)
+		return
+	}
+
+	pag := int64(pagTemp)
+
+	result, status := repository.GetAllUsers(IDUser, pag, search, typeUser)
+
+	if !status {
+		jsonLog.Error().Msg("Error leer usuarios " + err.Error())
+		http.Error(w, "Error leer usuarios", 400)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(result)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
