@@ -53,6 +53,67 @@ func Deletetweets(ID string, UserId string) error {
 
 }
 
+/*
+func FindFollowTweets(w http.ResponseWriter, r *http.Request) {
+	page := r.URL.Query().Get("page")
+
+	pagTemp, err := strconv.Atoi(page)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error lista usuario no encontrado " + err.Error())
+		http.Error(w, "Error lista usuario no encontrado", 400)
+		return
+	}
+
+	pag := int64(pagTemp)
+
+	result, status := repository.GetAllUsers(IDUser, pag, search, typeUser)
+
+	if !status {
+		jsonLog.Error().Msg("Error leer usuarios " + err.Error())
+		http.Error(w, "Error leer usuarios", 400)
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(result)
+}*/
+func ReadFollowTweets(ID string, page int) ([]models.FollowTweets, bool) {
+	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	db := db.MongoC.Database("twitter")
+	col := db.Collection("relations")
+
+	skip := (page - 1) * 20
+	conditions := make([]bson.M, 0)
+	conditions = append(conditions, bson.M{"$match": bson.M{"userId": ID}})
+	conditions = append(conditions, bson.M{
+		"$lookup": bson.M{
+			"from":         "tweets",
+			"localField":   "userRelationId",
+			"foreignField": "userId",
+			"as":           "tweets",
+		}})
+
+	conditions = append(conditions, bson.M{"$unwind": "$tweets"})
+	conditions = append(conditions, bson.M{"$sort": bson.M{"date": -1}})
+	conditions = append(conditions, bson.M{"$skip": skip})
+	conditions = append(conditions, bson.M{"$limit": 20})
+
+	//donde se guardan los valores de la bd
+	cursor, err := col.Aggregate(cxt, conditions)
+	var result []models.FollowTweets
+
+	err = cursor.All(cxt, &result)
+
+	if err != nil {
+		return result, false
+	}
+	return result, true
+}
+
 func Readtweets(ID string, page int64) ([]*models.TwitterList, bool) {
 
 	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
