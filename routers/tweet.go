@@ -35,6 +35,22 @@ func SaveTweet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+func DeleteTweet(w http.ResponseWriter, r *http.Request) {
+	ID := r.URL.Query().Get("id")
+	if len(ID) < 1 {
+		http.Error(w, "Debe enviar el parametro id", http.StatusBadRequest)
+		return
+	}
+
+	err := repository.Deletetweets(ID, IDUser)
+	if err != nil {
+		http.Error(w, "Error al eliminar tweets "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+}
+
 func ListTweet(w http.ResponseWriter, r *http.Request) {
 	ID := r.URL.Query().Get("id")
 	if len(ID) < 1 {
@@ -57,7 +73,7 @@ func ListTweet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pag := int64(page)
-	response, correct := repository.ReadTweet(ID, pag)
+	response, correct := repository.Readtweets(ID, pag)
 	if !correct {
 		http.Error(w, "Error al leer tweets", http.StatusBadRequest)
 		return

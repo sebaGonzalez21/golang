@@ -18,7 +18,7 @@ func AddTwett(tw models.Twitter) (string, bool, error) {
 	defer cancel()
 
 	db := db.MongoC.Database("twitter")
-	col := db.Collection("tweet")
+	col := db.Collection("tweets")
 	registry := bson.M{
 		"userId":  tw.UserId,
 		"message": tw.Message,
@@ -34,13 +34,32 @@ func AddTwett(tw models.Twitter) (string, bool, error) {
 	return objID.Hex(), true, nil
 }
 
-func ReadTweet(ID string, page int64) ([]*models.TwitterList, bool) {
+func Deletetweets(ID string, UserId string) error {
 
 	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	db := db.MongoC.Database("twitter")
-	col := db.Collection("tweet")
+	col := db.Collection("tweets")
+
+	objID, _ := primitive.ObjectIDFromHex(ID)
+	condition := bson.M{
+		"_id":    objID,
+		"userId": UserId,
+	}
+
+	_, err := col.DeleteOne(cxt, condition)
+	return err
+
+}
+
+func Readtweets(ID string, page int64) ([]*models.TwitterList, bool) {
+
+	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	db := db.MongoC.Database("twitter")
+	col := db.Collection("tweets")
 
 	filter := bson.M{
 		"userId": ID,

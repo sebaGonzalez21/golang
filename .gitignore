@@ -1,1 +1,6 @@
 .vscode
+
+.uploads/avatars/*.jpg
+.uploads/avatars/*.jpeg
+.uploads/banners/*.jpg
+.uploads/banners/*.jpeg

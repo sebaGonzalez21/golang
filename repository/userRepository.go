@@ -17,7 +17,7 @@ func AddUser(u models.User) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	//instruccion como ultima instruccion de la funcion
 	defer cancel()
-	db := db.MongoC.Database("testGo")
+	db := db.MongoC.Database("twitter")
 	col := db.Collection("users")
 
 	u.Password, _ = security.EncryptPass(u.Password)
@@ -36,7 +36,7 @@ func CheckExistUser(email string) (models.User, bool, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	//instruccion como ultima instruccion de la funcion
 	defer cancel()
-	db := db.MongoC.Database("testGo")
+	db := db.MongoC.Database("twitter")
 	col := db.Collection("users")
 
 	condition := bson.M{"email": email}
@@ -55,7 +55,7 @@ func FindProfile(ID string) (models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	//instruccion como ultima instruccion de la funcion
 	defer cancel()
-	db := db.MongoC.Database("testGo")
+	db := db.MongoC.Database("twitter")
 	col := db.Collection("users")
 
 	var profile models.User
@@ -93,7 +93,7 @@ func Login(email string, password string) (models.User, bool) {
 func ModifyUser(u models.User, ID string) (bool, error) {
 	cxt, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	db := db.MongoC.Database("testGo")
+	db := db.MongoC.Database("twitter")
 	col := db.Collection("users")
 
 	registre := make(map[string]interface{})

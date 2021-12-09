@@ -2,7 +2,10 @@ package routers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	jsonLog "github.com/rs/zerolog/log"
@@ -121,6 +124,142 @@ func ProfileView(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(profile)
+}
+
+func AddAvatar(w http.ResponseWriter, r *http.Request) {
+
+	file, handler, err := r.FormFile("avatar")
+	var extension = strings.Split(handler.Filename, ".")[1]
+	var archive string = "uploads/avatars/" + IDUser + "." + extension
+
+	f, err := os.OpenFile(archive, os.O_WRONLY|os.O_CREATE, 0666)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error subir imagen " + err.Error())
+		http.Error(w, "Error subir image", 400)
+	}
+	_, err = io.Copy(f, file)
+	if err != nil {
+		jsonLog.Error().Msg("Error al copiar la imagen " + err.Error())
+		http.Error(w, "Error al copiar la imagen", 400)
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	var user models.User
+	user.Avatar = IDUser + "." + extension
+	var status bool
+	status, err = repository.ModifyUser(user, IDUser)
+
+	if err != nil || !status {
+		jsonLog.Error().Msg("Error al guardar imagen en la bd " + err.Error())
+		http.Error(w, "Error al guardar imagen en la bd ", 400)
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+}
+
+func GetAvatar(w http.ResponseWriter, r *http.Request) {
+
+	ID := r.URL.Query().Get("id")
+	if len(ID) < 1 {
+		http.Error(w, "Debe enviar parametro id", http.StatusBadRequest)
+		return
+	}
+
+	profile, err := repository.FindProfile(ID)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error usuario no encontrado " + err.Error())
+		http.Error(w, "Error usuario no encontrado", 400)
+		return
+	}
+
+	OpenFile, err := os.Open("uploads/avatars/" + profile.Avatar)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error imagen no encontrada " + err.Error())
+		http.Error(w, "Error imagen no encontrada", 400)
+		return
+	}
+
+	_, err = io.Copy(w, OpenFile)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error al copiar imagen " + err.Error())
+		http.Error(w, "Error al copiar imagen ", 400)
+	}
+
+}
+
+func AddBanner(w http.ResponseWriter, r *http.Request) {
+
+	file, handler, err := r.FormFile("banner")
+	var extension = strings.Split(handler.Filename, ".")[1]
+	var archive string = "uploads/banners/" + IDUser + "." + extension
+
+	f, err := os.OpenFile(archive, os.O_WRONLY|os.O_CREATE, 0666)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error al subir banner " + err.Error())
+		http.Error(w, "Error al subir banner", 400)
+	}
+	_, err = io.Copy(f, file)
+	if err != nil {
+		jsonLog.Error().Msg("Error al copiar el banner " + err.Error())
+		http.Error(w, "Error al copiar el banner", 400)
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	var user models.User
+	user.Banner = IDUser + "." + extension
+	var status bool
+	status, err = repository.ModifyUser(user, IDUser)
+
+	if err != nil || !status {
+		jsonLog.Error().Msg("Error al guardar banner en la bd " + err.Error())
+		http.Error(w, "Error al guardar banner en la bd ", 400)
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+}
+
+func GetBanner(w http.ResponseWriter, r *http.Request) {
+
+	ID := r.URL.Query().Get("id")
+	if len(ID) < 1 {
+		http.Error(w, "Debe enviar parametro id", http.StatusBadRequest)
+		return
+	}
+
+	profile, err := repository.FindProfile(ID)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error usuario no encontrado " + err.Error())
+		http.Error(w, "Error usuario no encontrado", 400)
+		return
+	}
+
+	OpenFile, err := os.Open("uploads/banners/" + profile.Banner)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error banner no encontrada " + err.Error())
+		http.Error(w, "Error banner no encontrada", 400)
+		return
+	}
+
+	_, err = io.Copy(w, OpenFile)
+
+	if err != nil {
+		jsonLog.Error().Msg("Error al copiar banner " + err.Error())
+		http.Error(w, "Error al copiar banner ", 400)
+	}
+
 }
 
 func ModifyProfile(w http.ResponseWriter, r *http.Request) {
